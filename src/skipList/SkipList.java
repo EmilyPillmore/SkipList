@@ -8,6 +8,7 @@
  * @complexity: 
  */
 package skipList;
+import java.util.Collection;
 import java.util.Random;
 
 public class SkipList<T extends Comparable<? super T>> {
@@ -71,6 +72,21 @@ public class SkipList<T extends Comparable<? super T>> {
  	}
 	
 	/**
+	 * Takes a collection of values to add to SkipList and inserts them
+	 * if they are not null;
+	 * @param values - collection of values to be inserted.
+	 */
+	protected void insertAll(Collection<T> values) {
+		for(T x : values) 
+			if (x == null) 
+				return;
+			else {
+				update(x);
+				insert(x);
+			}
+	}
+	
+	/**
 	 * Updates and removes references to node with designated value and
 	 * decrements level as needed.
 	 * @param value - Value to be deleted.
@@ -92,6 +108,20 @@ public class SkipList<T extends Comparable<? super T>> {
 			while(level > 0 && head.next[level] == null)
 				level--;
 		}
+	}
+	
+	/**
+	 * Takes a collection of values to be deleted and deltes if they are not null;
+	 * @param values - collection to be deleted.
+	 */
+	protected void deleteAll(Collection<T> values) {
+		for(T x : values) 
+			if (x == null) 
+				return;
+			else {
+				update(x);
+				delete(x);
+			}
 	}
 	
 	/**
