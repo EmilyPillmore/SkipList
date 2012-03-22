@@ -83,6 +83,7 @@ public class SkipList<T extends Comparable<? super T>> {
 			else {
 				update(x);
 				insert(x);
+				size++;
 			}
 	}
 	
@@ -108,6 +109,7 @@ public class SkipList<T extends Comparable<? super T>> {
 			while(level > 0 && head.next[level] == null)
 				level--;
 		}
+		size--;
 	}
 	
 	/**
@@ -121,6 +123,7 @@ public class SkipList<T extends Comparable<? super T>> {
 			else {
 				update(x);
 				delete(x);
+				size--;
 			}
 	}
 	
@@ -201,5 +204,6 @@ public class SkipList<T extends Comparable<? super T>> {
 	 */
 	public void makeEmpty() {
 		head = null;
+		size = 0;
 	}
 }
