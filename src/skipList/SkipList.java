@@ -1,138 +1,175 @@
+/**
+ * @author Wyatt Pillmore
+ * 
+ * A skip list is a data structure for storing a sorted list of items 
+ * using a hierarchy of linked lists that connect increasingly sparse 
+ * subsequences of the items.
+ * 
+ * @complexity: 
+ */
 package skipList;
+import java.util.Random;
 
 public class SkipList<T extends Comparable<? super T>> {
-	
-	private int size = 0;
-	private static int max;
-	protected final SkipNode<T> head;
+   
+	public SkipNode<T> head; 
+	protected SkipNode<T> cPointer; //current reference pointer node.
+	public SkipNode<T>[] update; //updateable pointer array
+	public final int maxLevel;
+	int size = 0, level;
 	
 	/**
-	 * SkipList constructor that takes a MAX level threshold for parameter.
-	 * @empty constructor
+	 * Constructor that takes a maximum level parameter.
+	 * @param maxLevel
 	 */
-	public SkipList(int max_level) {
-		max = max_level;
-		head = new SkipNode<T>(null, max_level + 1);
+	public SkipList(int maxLevel) {
+		this.maxLevel = maxLevel;
+		head = new SkipNode<T>(null, maxLevel);
+		for(int i = 0; i < maxLevel; i++)
+			head.next[i] = null;
 	}
 	
 	/**
-	 * @function randomLevel()
-	 * randomizeLevel generates a number inclusive of 0 and our given MAX
-	 * returning number with an increasing lower chance of appearance the higher
-	 * it is.
-	 * 
-	 * @return int between low_bound, max.
+	 * Generate random number at decreasing percentage rate the higher it goes.
+	 * @return - random number between 0 and max
 	 */
-	private int randomLevel() {
-	    int low_bound = (int)(Math.log(1.0 - Math.random())/Math.log(1.0 - .5));
-	    return Math.min(low_bound, max);
-	} 
+	public int generateRandomLevel() {
+		Random random = new Random();
+		int rand = (int) (Math.log(1.0 - random.nextDouble())/Math.log(1-.5)); //Increasingly lower chance of maxLevel occurrences
+		return Math.min(rand, maxLevel - 1);
+	}
 	
 	/**
-	 * Insert function takes some generic value, instantiating a temporary SkipNode 
-	 * and an array of SkipNode pointers and assigns the value accordingly, updating references
-	 * and assigning level values as well.
-	 * 
-	 * @param value
+	 * Method updates using update(value) and inserts node appropriately
+	 * @param value - value to be inserted
 	 */
-	@SuppressWarnings("unchecked")
-	protected void insert(T value) {
-		SkipNode<T> current = head;
-		SkipNode<T>[] ref_array = new SkipNode[max + 1];
+	public void insert(T value) {
+		if(value == null)
+			return;
 		
-		//Update pointer array for current and assign to ref.
-		for (int i = max; i >= 0; i--) {
-			while(current.nodeArray[i] != null
-					&& current.nodeArray[i].data.compareTo(value) < 0) {
-				current = current.nodeArray[i];
-			}
-			ref_array[i] = current;
-		}
-		current = current.nodeArray[0];
+		else update(value);
+		SkipNode<T> node = cPointer;
+		SkipNode<T>[] temp = update;
 		
-		//Assign random level to current and update. Check for duplicates, otherwise create new Node.
-		if(current == null || ! current.data.equals(value)) {
-			int current_level = randomLevel();
+		if(node == null || ! node.data.equals(value)) {
+			int lvl = generateRandomLevel();
 			
-			//Formally update ref_array
-			if (current_level > max) {
-				for (int i = max + 1; i <= current_level; i++) {
-					ref_array[i] = head;
+			if(lvl > level) {
+				for(int i = level + 1; i <= lvl; i++) {
+					temp[i] = head;
 				}
-				max = current_level;
+				level = lvl;
 			}
-			//Insert
-			current = new SkipNode<T>(value, max);
-			for(int i = 0; i < max; i++) {
-				current.nodeArray[i] = ref_array[i].nodeArray[i];
-				ref_array[i].nodeArray[i] = current;
+			
+			node = new SkipNode<T>(value, lvl);
+			for(int i = 0; i <= lvl - 1; i++) {
+				node.next[i] = temp[i].next[i];
+				temp[i].next[i] = node;
 			}
-			size++;
 		}
-	}
+		size++;
+ 	}
 	
 	/**
-	 * Takes some value to be deleted, updates SkipNode pointer array,
-	 * removes SkipNode, and if necessary, decrements level.
-	 * 
-	 * @param value
+	 * Updates and removes references to node with designated value and
+	 * decrements level as needed.
+	 * @param value - Value to be deleted.
 	 */
-	@SuppressWarnings("unchecked")
 	public void delete(T value) {
-		
-		SkipNode<T> current = head;
-		SkipNode<T>[] ref_array = new SkipNode[max + 1];
-		
-		//update node pointer array
-		for(int i = max; i >= 0; i--) {
-			while(current.nodeArray[i] != null 
-					&& current.nodeArray[i].data.compareTo(value) < 0) {
-				current = current.nodeArray[i];
-			}
-			ref_array[i] = current;
-		}
-		current = current.nodeArray[0];
-		
-		//Remove node and decrement level as necessary.
-		if(current.data.equals(value)) {
-			for(int i = 0; i <= max; i++) {
-				if (ref_array[i].nodeArray[i] != current)
+		if(value == null || isEmpty() == true)
+			return;
+		else update(value);
+	
+		SkipNode<T> node = cPointer;
+		SkipNode<T>[] tmp = update;
+		if(node.data.equals(value)) {
+			for(int i = 0; i <= level; i++) {
+				if(tmp[i].next[i] != node)
 					break;
-				ref_array[i].nodeArray[i] = current.nodeArray[i];
+				tmp[i].next[i] = node.next[i];
 			}
-			//decrement level
-			while (max > 0 && head.nodeArray[max] == null) {
-				max--;
-			}
-			size--;
+			
+			while(level > 0 && head.next[level] == null)
+				level--;
 		}
-		else return;	
 	}
 	
 	/**
-	 * Takes a value and compares to data of each member of current's Node array.
-	 * 
-	 * @param value
-	 * @return true or false
+	 * Method to return the skipNode of the value we need.
+	 * @param value - value whose node container is returned
+	 * @return - SkipNode carrying the designated value.
+	 */
+	public SkipNode<T> find(T value) {
+		if(value == null || isEmpty() == true)
+			return null;
+		else update(value);
+		if(cPointer != null && cPointer.data.equals(value))
+			return cPointer;
+		else return null;
+	}
+	
+	/**
+	 * Contains method greps SkipList and returns true or false depended on
+	 * whether T value is present
+	 * @param value - value to check against in SkipList
+	 * @return - true or false
 	 */
 	public boolean contains(T value) {
-		SkipNode<T> current = head;
-	
-		//grep at node array spot [0..max] 
-		for(int i = max; i >= 0; i--) {
-			while(current.nodeArray[i] != null &&
-					current.nodeArray[i].data.compareTo(value) < 0) {
-				current = current.nodeArray[i];
+		if(value == null || isEmpty() == true)
+			return false;
+		
+		SkipNode<T> x = head;
+		for(int i = level; i >= 0; i--) {
+			while(x.next[i] != null && x.next[i].data.compareTo(value) < 0) {
+				x = x.next[i];
 			}
 		}
-		current = current.nodeArray[0];
-		if(current != null && current.data.equals(value))
-			return true;
-		else return false; 
+		x = x.next[0];
+		return x != null && x.data.equals(value);
+	
 	}
 	
+	/**
+	 * Updater method to update our current Pointer (cPointer)
+	 * and references.
+	 * @param value - value to set cPointer reference to.
+	 */
+	@SuppressWarnings("unchecked")
+	protected void update(T value) {
+		SkipNode<T> x = head;
+		SkipNode<T> [] temp = new SkipNode[maxLevel];
+		
+		for(int i = level; i >= 0; i--) {
+			while(x.next[i] != null && x.next[i].data.compareTo(value) < 0) {
+				x = x.next[i];
+			}
+			temp[i] = x;
+		}
+		cPointer = x.next[0];
+		update = temp;
+	}
+
+	/**
+	 * Method to return the size of the skipList.
+	 * Size is incremented and decremented by our methods.
+	 * @return size of SkipList
+	 */
 	public int sizeOf() {
-		return size;
+		return isEmpty() == true ? null : size; 
 	}
 	
+	/**
+	 * Method to safeguard against null skipList.
+	 * @return true if head == null, or false if not;
+	 */
+	public boolean isEmpty() {
+		return head == null ? true : false;
+	}
+	
+	/**
+	 * return an empty head, creating a null SkipList.
+	 */
+	public void makeEmpty() {
+		head = null;
+	}
 }
