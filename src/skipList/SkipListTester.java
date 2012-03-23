@@ -1,32 +1,38 @@
 package skipList;
-import java.util.ArrayList;
 
 public class SkipListTester {
 	public static void main(String[] args) {
-		SkipList<Integer> x = new SkipList<Integer>(5);
-		ArrayList<Integer> arbitrary = new ArrayList<Integer>();
+		int max = 13;
+		SkipList<Integer> x = new SkipList<Integer>(max);
+	
+		System.out.println(x.isEmpty());
+		x.makeEmpty();
+		System.out.println(x.isEmpty());
 		
-		for (int i = 0; i < 100; i++) {
+		for(int i = 0; i < 100; i++)
+			System.out.println("Contains " + i + ":\t" + x.contains(i));
+		
+		for (int i = 0; i < 100; i++)
 			x.insert(i);
-		}
-		
-		System.out.println("Size: " + x.sizeOf());
-		for (int i = 0; i < 100; i++) {
-			System.out.println("contains " + i + ":\t" + x.contains(i));
-		}
-		
-		for (int i = 0; i < 100; i++) {
-			if (i % 3 == 0) { 
+		for(int i = 0; i < 100; i++)  {
+			if(i % 2 == 0)
 				x.delete(i);
-				arbitrary.add(i);
-			}
+		System.out.println("Contains " + i + ":\t" + x.contains(i) + "\tFound: " + x.find(i));
 		}
 		
-		arbitrary.trimToSize();
-		for (int i = 0; i < 100; i++) {
-			System.out.println("contains " + i + ":\t" + x.contains(i));
+		System.out.println(x.sizeOf());
+		System.out.println(x.getLevel());
+		System.out.println(x.isEmpty());		
+		x.makeEmpty();
+		
+		long start = System.nanoTime();
+		for(int i = 0; i < 100; i++){
+			x.insert(i);
+			System.out.println("MaxLevel: " + max + "\tLevel: " + x.generateRandomLevel() + "\tInserting: " + i + "\tSize: " + x.sizeOf() + "\t Time(ms): " + (System.nanoTime() - start)/1000000);
 		}
-		System.out.println("Size: " + x.sizeOf());
-			
+		System.out.println("Total Time: " + (System.nanoTime() - start)/1000000 + "\tSize: " + x.sizeOf());
+		
+		
+		
 	}
 }
