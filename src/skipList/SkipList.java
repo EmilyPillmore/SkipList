@@ -5,7 +5,7 @@
  * using a hierarchy of linked lists that connect increasingly sparse 
  * subsequences of the items.
  * 
- * @complexity: 
+ * @complexity: amortized O(log n)
  */
 package skipList;
 import java.util.Collection;
@@ -17,13 +17,13 @@ public class SkipList<T extends Comparable<? super T>> {
 	protected SkipNode<T> cPointer; //current reference pointer node.
 	protected SkipNode<T>[] pArray; //pArrayable pointer array
 	public final int maxLevel;
-	int size = 0, level;
+	int size, level;
 	
 	/**
 	 * Constructor that takes a maximum level parameter.
 	 * @param maxLevel
 	 */
-	public SkipList(int maxLevel) {
+	public SkipList(int maxLevel) { /* Initialize root at maxlevel with null value */
 		this.maxLevel = maxLevel;
 		root = new SkipNode<T>(null, maxLevel); 
 		for(int i = 0; i < maxLevel; i++)
@@ -37,7 +37,7 @@ public class SkipList<T extends Comparable<? super T>> {
 	public int generateRandomLevel() {
 		Random random = new Random();
 		int rand = (int) (Math.log(1.0 - random.nextDouble())/Math.log(1-.5)); //Increasingly lower chance of maxLevel occurrences
-		return Math.min(rand, maxLevel - 1);
+		return Math.min(rand, maxLevel); 
 	}
 	
 	/**
@@ -49,26 +49,26 @@ public class SkipList<T extends Comparable<? super T>> {
 			return;
 		else updatePointers(value);
 		
-		SkipNode<T> node_t = cPointer;
-		SkipNode<T>[] array_t = pArray;
+		SkipNode<T> node_t = cPointer; //set temporary node and pointer array to update starting node
+		SkipNode<T>[] array_t = pArray; //with updated pointer references.
 		
 		if(node_t == null || ! node_t.data.equals(value)) {
-			int level_t = generateRandomLevel();
+			int level_t = generateRandomLevel(); //if not duplicate, insert.
 			
 			if(level_t > level) {
 				for(int i = level + 1; i <= level_t; i++) {
 					array_t[i] = root;
 				}
-				level = level_t;
+				level = level_t; 
 			}
 			
-			node_t = new SkipNode<T>(value, level_t);
+			node_t = new SkipNode<T>(value, level_t); //insert with updated temporary level value.
 			for(int i = 0; i <= level_t; i++) {
 				node_t.next[i] = array_t[i].next[i];
-				array_t[i].next[i] = node_t;
+				array_t[i].next[i] = node_t; //set pointer references to proper node(s).
 			}
 		}
-		size++;
+		size++; 
  	}
 	
 	/**
@@ -77,7 +77,7 @@ public class SkipList<T extends Comparable<? super T>> {
 	 * @param values - collection of values to be inserted.
 	 */
 	protected void insertAll(Collection<T> values) {
-		for(T type_t : values) 
+		for(T type_t : values) // Love the foreach. Basic collection insert code. Foreach value, insert if not null and update accordingly.
 			if (type_t == null) 
 				return;
 			else {
@@ -99,7 +99,8 @@ public class SkipList<T extends Comparable<? super T>> {
 	
 		SkipNode<T> node_t = cPointer;
 		SkipNode<T>[] array_t = pArray;
-		if(node_t.data.equals(value)) {
+		
+		if(node_t.data.equals(value)) { /*Our update code lands us in the correct spot. All that's left is to set pointer refs accordingly */
 			for(int i = 0; i <= level; i++) {
 				if(array_t[i].next[i] != node_t)
 					break;
@@ -107,7 +108,7 @@ public class SkipList<T extends Comparable<? super T>> {
 			}
 			
 			while(level > 0 && root.next[level] == null)
-				level--;
+				level--; //decrement level as necessary.
 		}
 		size--;
 	}
@@ -117,7 +118,7 @@ public class SkipList<T extends Comparable<? super T>> {
 	 * @param values - collection to be deleted.
 	 */
 	protected void deleteAll(Collection<T> values) {
-		for(T type_t : values) 
+		for(T type_t : values) /* same as insertAll but for delete */
 			if (type_t == null) 
 				return;
 			else {
@@ -135,7 +136,7 @@ public class SkipList<T extends Comparable<? super T>> {
 	public SkipNode<T> find(T value) {
 		if(value == null || isEmpty() == true)
 			return null;
-		else updatePointers(value);
+		else updatePointers(value); /* update pointers, and return node if not null and value is equal to value at temp */
 
 		SkipNode<T> node_t = cPointer;
 		return node_t != null && node_t.data.equals(value) 
@@ -151,7 +152,7 @@ public class SkipList<T extends Comparable<? super T>> {
 	public boolean contains(T value) {
 		if(value == null || isEmpty() == true)
 			return false;
-		else updatePointers(value);
+		else updatePointers(value); /* Same as find, but return boolean if found or not */
 		
 		SkipNode<T> node_t = cPointer;
 		return node_t != null && node_t.data.equals(value);
@@ -164,20 +165,21 @@ public class SkipList<T extends Comparable<? super T>> {
 	 */
 	@SuppressWarnings("unchecked")
 	protected void updatePointers(T value) {
-		if(root == null)
+		if(root == null) /* if makeEmpty is called, if we don't reinstantiate root, NullPointerExceptions are thrown */
 			root = new SkipNode<T>(null, maxLevel);
 		
 		SkipNode<T> node_t = root;
 		SkipNode<T> [] array_t = new SkipNode[maxLevel + 1];
 		
+		/*Grep nodes using Comparable (finally) and return updated pointer references */
 		for(int i = level; i >= 0; i--) {
 			while(node_t.next[i] != null && node_t.next[i].data.compareTo(value) < 0) {
 				node_t = node_t.next[i];
 			}
 			array_t[i] = node_t;
 		}
-		cPointer = node_t.next[0];
-		pArray = array_t;
+		cPointer = node_t.next[0]; //updated references
+		pArray = array_t; 
 	}
 
 /* ----------- Utility Methods ------------ */
@@ -187,7 +189,7 @@ public class SkipList<T extends Comparable<? super T>> {
 	 * @return size of SkipList
 	 */
 	public int sizeOf() {
-		return isEmpty() == true ? null : size; 
+		return size; 
 	}
 	
 	/**
@@ -195,7 +197,7 @@ public class SkipList<T extends Comparable<? super T>> {
 	 * @return true if root == null, or false if not;
 	 */
 	protected boolean isEmpty() {
-		return root == null ? true : false;
+		return root == null ? true : false; // I like to be explicit. Relying on Java makes me nervous.
 	}
 	
 	/**
