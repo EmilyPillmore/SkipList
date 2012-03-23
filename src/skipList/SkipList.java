@@ -15,7 +15,7 @@ public class SkipList<T extends Comparable<? super T>> {
    
 	public SkipNode<T> head; 
 	protected SkipNode<T> cPointer; //current reference pointer node.
-	public SkipNode<T>[] update; //updateable pointer array
+	protected SkipNode<T>[] update; //updateable pointer array
 	public final int maxLevel;
 	int size = 0, level;
 	
@@ -25,7 +25,7 @@ public class SkipList<T extends Comparable<? super T>> {
 	 */
 	public SkipList(int maxLevel) {
 		this.maxLevel = maxLevel;
-		head = new SkipNode<T>(null, maxLevel);
+		head = new SkipNode<T>(null, maxLevel); 
 		for(int i = 0; i < maxLevel; i++)
 			head.next[i] = null;
 	}
@@ -47,8 +47,8 @@ public class SkipList<T extends Comparable<? super T>> {
 	public void insert(T value) {
 		if(value == null)
 			return;
-		
 		else update(value);
+		
 		SkipNode<T> node = cPointer;
 		SkipNode<T>[] temp = update;
 		
@@ -63,7 +63,7 @@ public class SkipList<T extends Comparable<? super T>> {
 			}
 			
 			node = new SkipNode<T>(value, lvl);
-			for(int i = 0; i <= lvl - 1; i++) {
+			for(int i = 0; i <= lvl; i++) {
 				node.next[i] = temp[i].next[i];
 				temp[i].next[i] = node;
 			}
@@ -98,12 +98,12 @@ public class SkipList<T extends Comparable<? super T>> {
 		else update(value);
 	
 		SkipNode<T> node = cPointer;
-		SkipNode<T>[] tmp = update;
+		SkipNode<T>[] temp = update;
 		if(node.data.equals(value)) {
 			for(int i = 0; i <= level; i++) {
-				if(tmp[i].next[i] != node)
+				if(temp[i].next[i] != node)
 					break;
-				tmp[i].next[i] = node.next[i];
+				temp[i].next[i] = node.next[i];
 			}
 			
 			while(level > 0 && head.next[level] == null)
@@ -136,9 +136,10 @@ public class SkipList<T extends Comparable<? super T>> {
 		if(value == null || isEmpty() == true)
 			return null;
 		else update(value);
-		if(cPointer != null && cPointer.data.equals(value))
-			return cPointer;
-		else return null;
+
+		SkipNode<T> x = cPointer;
+		return x != null && x.data.equals(value) 
+				? x : null;
 	}
 	
 	/**
@@ -150,16 +151,10 @@ public class SkipList<T extends Comparable<? super T>> {
 	public boolean contains(T value) {
 		if(value == null || isEmpty() == true)
 			return false;
+		else update(value);
 		
-		SkipNode<T> x = head;
-		for(int i = level; i >= 0; i--) {
-			while(x.next[i] != null && x.next[i].data.compareTo(value) < 0) {
-				x = x.next[i];
-			}
-		}
-		x = x.next[0];
+		SkipNode<T> x = cPointer;
 		return x != null && x.data.equals(value);
-	
 	}
 	
 	/**
@@ -169,8 +164,11 @@ public class SkipList<T extends Comparable<? super T>> {
 	 */
 	@SuppressWarnings("unchecked")
 	protected void update(T value) {
+		if(head == null)
+			head = new SkipNode<T>(null, maxLevel);
+		
 		SkipNode<T> x = head;
-		SkipNode<T> [] temp = new SkipNode[maxLevel];
+		SkipNode<T> [] temp = new SkipNode[maxLevel + 1];
 		
 		for(int i = level; i >= 0; i--) {
 			while(x.next[i] != null && x.next[i].data.compareTo(value) < 0) {
@@ -182,6 +180,7 @@ public class SkipList<T extends Comparable<? super T>> {
 		update = temp;
 	}
 
+/* ----------- Utility Methods ------------ */
 	/**
 	 * Method to return the size of the skipList.
 	 * Size is incremented and decremented by our methods.
@@ -195,15 +194,22 @@ public class SkipList<T extends Comparable<? super T>> {
 	 * Method to safeguard against null skipList.
 	 * @return true if head == null, or false if not;
 	 */
-	public boolean isEmpty() {
+	protected boolean isEmpty() {
 		return head == null ? true : false;
 	}
 	
 	/**
-	 * return an empty head, creating a null SkipList.
+	 * @return an empty head, creating a null SkipList.
 	 */
 	public void makeEmpty() {
 		head = null;
 		size = 0;
+	}
+	
+	/**
+	 * @return level
+	 */
+	public int getLevel() {
+		return level;
 	}
 }
