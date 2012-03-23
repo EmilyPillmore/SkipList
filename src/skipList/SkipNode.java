@@ -12,12 +12,10 @@ public class SkipNode<T extends Comparable<? super T>> {
 
 	public SkipNode<T>[] next;
 	public T data;
-	public int height;
 	
 	@SuppressWarnings("unchecked")
 	public SkipNode (T data, int level) {
 		next = new SkipNode[level];
-		height = level;
 		this.data = data;
 		
 		for(int i = 0; i < next.length; i++)
