@@ -10,7 +10,7 @@ public class SkipListTester {
 		long start_t = System.nanoTime();
 		for(int i = 0; i < 100; i++) {
 			for(int k = 0; k < 10000; k++) {
-				x.insert(i);
+				x.insert(k);
 			}
 			System.out.println((System.nanoTime() - start_t)/1000000 + "\t" + i);
 		}
