@@ -31,7 +31,6 @@ public class SkipListTester {
 		/* ----------------- End Timing code --------------- */
 		
 		
-		System.out.println("Total time(ms): " + (System.nanoTime() - start_t)/1000000);
 		System.out.println("Is Empty: \t" + x.isEmpty() + "\nMaking empty...");
 		x.makeEmpty();
 		System.out.println("Is Empty: \t" + x.isEmpty());
