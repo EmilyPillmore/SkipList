@@ -5,7 +5,7 @@
  * using a hierarchy of linked lists that connect increasingly sparse 
  * subsequences of the items.
  * 
- * @complexity: amortized O(log n)
+ * @complexity: O (log n)
  */
 package skipList;
 import java.util.Collection;
@@ -15,7 +15,7 @@ public class SkipList<T extends Comparable<? super T>> {
    
 	private  SkipNode<T> root; 
 	protected SkipNode<T> cPointer; //current reference pointer node.
-	protected SkipNode<T>[] pArray; //pArrayable pointer array
+	protected SkipNode<T>[] pArray; //updateable pointer array
 	public final int maxLevel;
 	int size, level;
 	
@@ -41,7 +41,7 @@ public class SkipList<T extends Comparable<? super T>> {
 	}
 	
 	/**
-	 * Method pArrays using pArray(value) and inserts node appropriately
+	 * Method updates using updatePointers(value) and inserts node appropriately
 	 * @param value - value to be inserted
 	 */
 	public void insert(T value) {
@@ -88,7 +88,7 @@ public class SkipList<T extends Comparable<? super T>> {
 	}
 	
 	/**
-	 * pArrays and removes references to node with designated value and
+	 * Updates and removes references to node with designated value and
 	 * decrements level as needed.
 	 * @param value - Value to be deleted.
 	 */
@@ -139,7 +139,7 @@ public class SkipList<T extends Comparable<? super T>> {
 		else updatePointers(value); /* update pointers, and return node if not null and value is equal to value at temp */
 
 		SkipNode<T> node_t = cPointer;
-		return node_t != null && node_t.data.equals(value) 
+		return (node_t != null && node_t.data.equals(value)) 
 				? node_t : null;
 	}
 	
@@ -159,13 +159,13 @@ public class SkipList<T extends Comparable<? super T>> {
 	}
 	
 	/**
-	 * pArrayr method to pArray our current Pointer (cPointer)
+	 * Updater method to update our current Pointer (cPointer)
 	 * and references.
 	 * @param value - value to set cPointer reference to.
 	 */
 	@SuppressWarnings("unchecked")
 	protected void updatePointers(T value) {
-		if(root == null) /* if makeEmpty is called, if we don't reinstantiate root, NullPointerExceptions are thrown */
+		if(root == null) /* When makeEmpty() is called, if we don't reinstantiate root, NullPointerExceptions are thrown */
 			root = new SkipNode<T>(null, maxLevel);
 		
 		SkipNode<T> node_t = root;
@@ -182,7 +182,7 @@ public class SkipList<T extends Comparable<? super T>> {
 		pArray = array_t; 
 	}
 
-/* ----------- Utility Methods ------------ */
+/* ------------------ Utility Methods ------------------- */
 	/**
 	 * Method to return the size of the skipList.
 	 * Size is incremented and decremented by our methods.
