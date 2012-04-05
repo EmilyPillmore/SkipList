@@ -36,12 +36,13 @@ public class SkipList<T extends Comparable<? super T>> {
 	/* Global vars */
 	private SkipNode<T> head;
 	private SkipNode<T>[] update;
-	private int[] indexer;
+	private int[] index;
 	
 	private int size = 0, level = 1;
 	private static final double P = 0.5; //Pugh's skiplist cookbook.
 	private final int MAX_LEVEL;
 	public final Random random = new Random();
+	public int t;
 	
 	/**
 	 * SkipList constructor takes MAX_LEVEL and builds head and necessary 
@@ -51,12 +52,13 @@ public class SkipList<T extends Comparable<? super T>> {
 	 */
 	public SkipList(int level) {
 		this.MAX_LEVEL = level;
+		t = 0;
 		build(MAX_LEVEL);
 	}
 	private void build(int level) {
 		head = new SkipNode<T>(null, level);
 		update = new SkipNode[level];
-		indexer = new int[level];
+		index = new int[level];
 		
 		for(int i = 0; i < level; i++) {
 			head.next[i] = head; //set head pointers and distance
@@ -80,16 +82,17 @@ public class SkipList<T extends Comparable<? super T>> {
 		SkipNode<T> x = head;
 		SkipNode<T> y = head;
 		int i;
-		int index = 0;
+		int ind = 0;
 		
 		for(i = level - 1; i >= 0; i--) {
 			while(x.next[i] != y && x.next[i].data.compareTo(value) < 0) {
-				index += x.span[i];
+				ind += x.span[i];
+				t++;
 				x = x.next[i];
 			}
 			y = x.next[i];
 			update[i] = x;
-			indexer[i] = index;
+			index[i] = ind;
 		}
 		
 		if (level_t > level) {
@@ -107,8 +110,8 @@ public class SkipList<T extends Comparable<? super T>> {
 			else {
 				x.next[i] = update[i].next[i];
 				update[i].next[i] = x;
-				x.span[i] = indexer[i] + update[i].span[i] - index;
-				update[i].span[i] = index + 1 - indexer[i];
+				x.span[i] = index[i] + update[i].span[i] - ind;
+				update[i].span[i] = ind + 1 - index[i];
 			}
 		}
 		x.prev = update[0];
@@ -158,7 +161,7 @@ public class SkipList<T extends Comparable<? super T>> {
 	 * @param index
 	 * @return value at index 
 	 */
-	public T remove (int index) {
+	public T removeIndex(int index) {
 		SkipNode<T> x = head;
 		int ind = 0;
 		for(int i = level - 1; i >= 0; i--) {
@@ -178,7 +181,7 @@ public class SkipList<T extends Comparable<? super T>> {
 	}
 	public void removeAllByIndex(Collection<Integer> values) {
 		for(Integer x : values) 
-			remove((int) x);
+			removeIndex((int) x);
 	}
 	
 	/**
@@ -197,7 +200,7 @@ public class SkipList<T extends Comparable<? super T>> {
 			else update[i].span[i]--;
 		
 		node.next[0].prev = node.prev;
-		while (head.next[level - 1] == head && level > 1)
+		while (head.next[level] == head && level > 1)
 			level--;
 		size--;
 	}
@@ -207,13 +210,13 @@ public class SkipList<T extends Comparable<? super T>> {
 	 * 
 	 * @return randomly generated int
 	 */
-	private int randomLevel() {
-		/* int randomLevel = 1;
-		while (randomLevel < MAX_LEVEL - 1 && random.nextDouble() < P)
+	protected int randomLevel() {
+		/*int randomLevel = 1;
+		while (randomLevel < MAX_LEVEL && random.nextDouble() < P)
 			randomLevel++;
 		return randomLevel; */
 		
-		int x = random.nextInt() | 0x100;
+		int x = random.nextInt() | 0x100; //256
         x ^= x << 13;
         x ^= x >>> 17;
         x ^= x << 5;
@@ -229,11 +232,8 @@ public class SkipList<T extends Comparable<? super T>> {
 	 * @param x
 	 * @return true or false
 	 */
-	public boolean contains(T x) {
-		return x != null && searchByElement(x) != null;
-	}
-	public boolean contains(int x) {
-		return searchByIndex(x) != null;
+	public boolean containsElement(T x) {
+		return searchByElement(x) != null;
 	}
 	
 	/**
@@ -245,11 +245,11 @@ public class SkipList<T extends Comparable<? super T>> {
 	public SkipNode<T> searchByElement(T element) {
 		SkipNode<T> curr = head;
 		for (int i = level - 1; i >= 0; i--)
-			while (curr.next[i] != head
-					&& curr.next[i].data.compareTo(element) < 0)
+			while (curr.next[i] != head && curr.next[i].data.compareTo(element) < 0)
 				curr = curr.next[i];
 		curr = curr.next[0];
-		if (curr != head && curr.data.compareTo(element) == 0)
+		
+		if (curr != head && curr.data.equals(element))
 			return curr;
 		return null;
 	}
@@ -261,6 +261,9 @@ public class SkipList<T extends Comparable<? super T>> {
 	 * @return SkipNode<T> with relevant index.
 	 */
 	private SkipNode<T> searchByIndex(int index) {
+		if(index > size)
+			return null;
+		
 		SkipNode<T> curr = head;
 		int ind = -1;
 		for (int i = level - 1; i >= 0; i--)
@@ -286,11 +289,8 @@ public class SkipList<T extends Comparable<? super T>> {
 	 * Clearing utility method. 
 	 */
 	public void makeEmpty() {
-		for(int i = 0; i < MAX_LEVEL; i++) {
-			head.next[i] = head;
-			head.span[i] = 1;
-		}
-		head.prev = head;
+		head = null;
+		build(MAX_LEVEL);
 		size = 0;
 	}
 	
@@ -299,7 +299,7 @@ public class SkipList<T extends Comparable<? super T>> {
 	 * @return true or false;
 	 */
 	public boolean isEmpty() {
-		return head.next[0] != null;
+		return size == 0;
 	}
 	
 	/**
@@ -308,5 +308,13 @@ public class SkipList<T extends Comparable<? super T>> {
 	 */
 	public int size() {
 		return size;
+	}
+	
+	/**
+	 * Traversal count
+	 * @return traversal count;
+	 */
+	public int traverse() {
+		return t;
 	}
 }
