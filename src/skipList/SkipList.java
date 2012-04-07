@@ -217,14 +217,15 @@ public class SkipList<T extends Comparable<? super T>> {
 		return randomLevel; */
 		
 		int x = random.nextInt() | 0x100; //256
-        x ^= x << 13;
-        x ^= x >>> 17;
-        x ^= x << 5;
-        if ((x & 0x8001) != 0) // test highest and lowest bits
-            return 1;
-        int level = 1;
-        while (((x >>>= 1) & 1) != 0) ++level;
-        return level+1; 
+       		x ^= x << 13;
+        	x ^= x >>> 17;
+        	x ^= x << 5;
+        	if ((x & 0x8001) != 0) // test highest and lowest bits
+            		return 1;
+       		int level = 1;
+       		
+        	while (((x >>>= 1) & 1) != 0) ++level;
+        		return level+1; 
 	}
 	
 	/**
