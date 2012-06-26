@@ -1,8 +1,11 @@
 /**
- * @author Wyatt Pillmore
+ * @author Arabian
  * 
- * Naive indexed implementation of the SkipList data structure 
- * by William Pugh.
+ * Naive base indexed implementation of the SkipList data structure. Ready for Serialization,
+ * Iteration, and concurrent mapping.
+ * Amortized logarithmic complexity for search, insertion, deletion, and contains queries.
+ * 
+ * Original by William Pugh.
  * 
  * @date 4/4/12;
  */
@@ -206,15 +209,11 @@ public class SkipList<T extends Comparable<? super T>> {
 	}
 	
 	/**
-	 * A rather naive random level generator. See comments.
+	 * Concurrent random number generator.
 	 * 
 	 * @return randomly generated int
 	 */
 	protected int randomLevel() {
-		/*int randomLevel = 1;
-		while (randomLevel < MAX_LEVEL && random.nextDouble() < P)
-			randomLevel++;
-		return randomLevel; */
 		
 		int x = random.nextInt() | 0x100; //256
        		x ^= x << 13;
